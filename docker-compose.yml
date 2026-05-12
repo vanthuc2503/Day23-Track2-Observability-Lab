@@ -23,6 +23,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    volumes:
+      - ./logs:/var/log/day23:rw
     networks: [obs]
 
   prometheus:
@@ -77,6 +79,7 @@ services:
       - prometheus
       - loki
       - jaeger
+      - promtail
     networks: [obs]
 
   loki:
@@ -111,6 +114,18 @@ services:
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
     depends_on:
       - jaeger
+    networks: [obs]
+
+  promtail:
+    image: grafana/promtail:3.3.0
+    container_name: day23-promtail
+    user: root
+    volumes:
+      - ./logs:/var/log/day23:ro
+      - ./03-tracing-and-logs/promtail/promtail-config.yaml:/etc/promtail/config.yaml:ro
+    command: -config.file=/etc/promtail/config.yaml
+    depends_on:
+      - loki
     networks: [obs]
 
 volumes:

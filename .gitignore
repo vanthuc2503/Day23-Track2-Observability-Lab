@@ -15,3 +15,6 @@ submission/screenshots/*.jpg
 # Local OS junk
 .DS_Store
 Thumbs.db
+04-drift-detection/data/current.parquet
+04-drift-detection/data/reference.parquet
+logs/app.log

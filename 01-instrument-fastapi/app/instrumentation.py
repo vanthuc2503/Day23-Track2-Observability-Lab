@@ -7,6 +7,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from pathlib import Path
 
 import structlog
 from opentelemetry import trace
@@ -77,11 +78,19 @@ def setup_otel() -> None:
 
 
 def _configure_logging() -> None:
-    logging.basicConfig(
-        format="%(message)s",
-        stream=sys.stdout,
-        level=os.getenv("LOG_LEVEL", "INFO"),
-    )
+    # Create logs directory if it doesn't exist
+    log_dir = Path("/var/log/day23")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "app.log"
+
+    # Configure standard logging to file
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setFormatter(logging.Formatter("%(message)s"))
+
+    root_logger = logging.getLogger()
+    root_logger.addHandler(file_handler)
+    root_logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
+
     structlog.configure(
         processors=[
             structlog.contextvars.merge_contextvars,
@@ -90,7 +99,7 @@ def _configure_logging() -> None:
             structlog.processors.JSONRenderer(),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
-        logger_factory=structlog.PrintLoggerFactory(),
+        logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
 

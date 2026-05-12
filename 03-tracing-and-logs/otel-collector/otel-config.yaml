@@ -23,21 +23,21 @@ processors:
     send_batch_size: 1024
     timeout: 5s
 
-  # Composite tail-sampling: keep all errors + slow + 1% healthy
-  tail_sampling:
-    decision_wait: 30s
-    num_traces: 50000
-    expected_new_traces_per_sec: 100
-    policies:
-      - name: keep-errors
-        type: status_code
-        status_code: { status_codes: [ERROR] }
-      - name: keep-slow
-        type: latency
-        latency: { threshold_ms: 2000 }
-      - name: probabilistic-1pct
-        type: probabilistic
-        probabilistic: { sampling_percentage: 1 }
+  # Bypass tail_sampling in lab: keep all traces for debugging
+  # tail_sampling:
+  #   decision_wait: 10s
+  #   num_traces: 50000
+  #   expected_new_traces_per_sec: 100
+  #   policies:
+  #     - name: keep-errors
+  #       type: status_code
+  #       status_code: { status_codes: [ERROR] }
+  #     - name: keep-slow
+  #       type: latency
+  #       latency: { threshold_ms: 2000 }
+  #     - name: probabilistic-10pct
+  #       type: probabilistic
+  #       probabilistic: { sampling_percentage: 10 }
 
   # Add deployment env to every span/metric resource attribute
   resource:
@@ -60,7 +60,7 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [tail_sampling, resource, batch]
+      processors: [resource, batch]
       exporters: [otlp/jaeger]
 
     metrics:
